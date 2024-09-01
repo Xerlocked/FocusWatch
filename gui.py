@@ -1,5 +1,4 @@
 import sys
-import subprocess
 import platform
 from PyQt6.QtWidgets import QMainWindow, QApplication, QListWidget, QComboBox, QGridLayout, QPushButton, QWidget, QSizePolicy, QMenu, QMessageBox, QLabel, QVBoxLayout
 from PyQt6.QtGui import QAction, QIcon, QShortcut, QKeySequence
@@ -26,7 +25,7 @@ class WorkerTimer(QTimer):
         if self.parent == None:
             return
         
-        active_window_title = gw.getActiveWindowTitle() if self.os == "Windows" else self.getActiveWindowTitleForMacOS()
+        active_window_title = gw.getActiveWindow().title
         
         if self.parent.is_item_exists(active_window_title):
             self.elapsed_time += 1
@@ -35,24 +34,6 @@ class WorkerTimer(QTimer):
             self.update_state_signal.emit(False)
         self.update_signal.emit(self.elapsed_time)
         
-        
-    def getActiveWindowTitleForMacOS(self):
-        
-        print('HI')
-        script = '''
-        tell application "System Events"
-            set frontApp to name of first application process whose frontmost is true
-        end tell
-        tell application frontApp
-            set windowTitle to name of front window
-        end tell
-        return windowTitle
-        '''
-    
-        result = subprocess.run(['osascript', '-e', script], stdout=subprocess.PIPE)
-        window_title = result.stdout.decode('utf-8').strip()
-        return window_title
-
 
 class MainPanel(QMainWindow):
     
@@ -72,10 +53,7 @@ class MainPanel(QMainWindow):
         exitAct = QAction(QIcon(), 'Exit', self)
         
         # 플랫폼 설정(나중에 수정)
-        if platform.system() == "Darwin":
-            exitAct.setShortcut(QKeySequence(Qt.Modifier.META) | Qt.Key.Key_Q)
-        else:
-            exitAct.setShortcut('Ctrl+Q')
+        exitAct.setShortcut('Ctrl+Q')
         
         exitAct.setStatusTip('Exit application')
         exitAct.triggered.connect(self.close)
@@ -167,45 +145,14 @@ class MainPanel(QMainWindow):
     def command_refresh_process(self):
         
         # 모든 활성화된 윈도우 창 가져오기
-        windows = self.get_all_window_titles()
+        windows = gw.getAllTitles()
+        windows = [title for title in windows if title]
         
         if len(windows) > 0:
             self.combo_process_list.clear()
             self.combo_process_list.addItems(windows)
-
-
-    def get_all_window_titles(self):
-        os = platform.system()
-        
-        if os == "Windows":
-            windows = gw.getAllTitles()
-        
-        elif os == "Darwin":
-            # macOS에서 활성화된 윈도우 창 가져오기
-            script = '''
-            tell application "System Events"
-                set window_list to ""
-                set app_list to application processes
-                repeat with app in app_list
-                    set win_list to every window of app
-                    repeat with win in win_list
-                        set window_list to window_list & (name of app & " - " & name of win & linefeed)
-                    end repeat
-                end repeat
-            end tell
-            return window_list
-            '''
-            result = subprocess.run(['osascript', '-e', script], stdout=subprocess.PIPE)
-            windows = result.stdout.decode('utf-8').strip().splitlines()
-        
-        else:
-            windows = []
             
-        windows = [title for title in windows if title]
-        
-        return windows
-
-        
+            
     def command_start_timer(self):
         if self.worker:
             self.worker.start(1000)
@@ -263,7 +210,7 @@ class SubPanel(QMainWindow):
         container.setLayout(layout)
         self.setCentralWidget(container)
         
-        if platform.system() == 'Darwin':
+        if sys.platform == 'Darwin':
             stop_shortcut = QShortcut(QKeySequence(Qt.Modifier.META | Qt.Key.Key_S), self)
             clear_shortcut = QShortcut(QKeySequence(Qt.Modifier.META | Qt.Key.Key_R), self)
         else:
