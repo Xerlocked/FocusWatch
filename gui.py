@@ -25,7 +25,10 @@ class WorkerTimer(QTimer):
         if self.parent == None:
             return
         
-        active_window_title = gw.getActiveWindow().title
+        if self.os == 'darwin':
+            active_window_title = gw.getActiveWindow()
+        else:
+            active_window_title = gw.getActiveWindow().title
         
         if self.parent.is_item_exists(active_window_title):
             self.elapsed_time += 1
