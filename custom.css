@@ -1,0 +1,11 @@
+QPushButton {{
+    color: {QTMATERIAL_SECONDARYCOLOR};
+    text-transform: none;
+    background-color: {QTMATERIAL_PRIMARYCOLOR};
+}}
+
+.secondary_button {{
+    color: {QTMATERIAL_PRIMARYTEXTCOLOR};
+    text-transform: none;
+    background-color: {QTMATERIAL_SECONDARYCOLOR};
+}}
