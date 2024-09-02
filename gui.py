@@ -1,4 +1,5 @@
 import sys
+import os
 import platform
 from PyQt6.QtWidgets import QMainWindow, QApplication, QListWidget, QComboBox, QGridLayout, QPushButton, QWidget, QSizePolicy, QMenu, QMessageBox, QLabel, QVBoxLayout
 from PyQt6.QtGui import QAction, QIcon, QShortcut, QKeySequence
@@ -6,6 +7,17 @@ from PyQt6.QtCore import Qt, pyqtSignal, QTime, QTimer
 from qt_material import apply_stylesheet
 import pygetwindow as gw
 
+if hasattr(sys, '_MEIPASS'):
+    base_path = sys._MEIPASS
+else:
+    base_path = os.path.abspath(".")
+
+# CSS
+css_file = os.path.join(base_path, 'resources/style.css')
+
+# SVG
+play_icon_path  = os.path.join(base_path, 'resources/play.svg')
+refresh_icon_path  = os.path.join(base_path, 'resources/refresh.svg')
 
 class WorkerTimer(QTimer):
     update_signal = pyqtSignal(int)
@@ -80,7 +92,7 @@ class MainPanel(QMainWindow):
         start_button.clicked.connect(self.command_start_timer)
         
         # 시작 아이콘
-        start_icon = QIcon("play.svg")
+        start_icon = QIcon(play_icon_path)
         start_button.setIcon(start_icon)
 
         # 프로세스 목록 리프레시 버튼
@@ -90,7 +102,7 @@ class MainPanel(QMainWindow):
         refresh_button.clicked.connect(self.command_refresh_process)
         
         # 리프레시 아이콘
-        refresh_icon = QIcon("refresh.svg")
+        refresh_icon = QIcon(refresh_icon_path)
         refresh_button.setIcon(refresh_icon)
         
         # 리스트
@@ -262,7 +274,7 @@ def main():
     app = QApplication(sys.argv)
     
     # setup stylesheet
-    apply_stylesheet(app, theme='light_red.xml', css_file='custom.css')
+    apply_stylesheet(app, theme='light_red.xml', css_file=css_file)
 
     worker_timer = WorkerTimer()
 
